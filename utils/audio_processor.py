@@ -17,11 +17,16 @@ def download_youtube_audio(url :str) ->str:
                 "preferredquality": "192",
             }
         ],
+        "extractor_args": {
+            "youtube": {
+                "player_client": ["android"]
+            }
+        },
         "quiet": True,
     }
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         info = ydl.extract_info(url, download=True)
-        filename = ydl.prepare_filename(info).replace(".webm", ".wav").replace(".m4a", ".wav")
+        filename = os.path.splitext(ydl.prepare_filename(info))[0] + ".wav"
     return filename
 
 

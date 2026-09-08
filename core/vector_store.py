@@ -16,6 +16,13 @@ def get_embeddings():
 
 def build_vector_store(transcript : str)->Chroma:
     print("Building vector Store")
+    import shutil
+    if os.path.exists(CHROMA_DIR):
+        try:
+            shutil.rmtree(CHROMA_DIR)
+            print("Cleared existing vector store directory.")
+        except Exception as e:
+            print(f"Error clearing vector store: {e}")
 
     splitter = RecursiveCharacterTextSplitter(
         chunk_size = 500,

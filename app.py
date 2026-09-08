@@ -342,18 +342,24 @@ with st.sidebar:
 
     run_btn = st.button("⚡  Analyse", use_container_width=True)
 
-    if st.session_state.pipeline_done:
-        st.markdown("---")
-        st.markdown('<span class="badge badge-green">Pipeline Status</span>', unsafe_allow_html=True)
-        for step, icon, label in [
-            ("audio",      "🔊", "Audio Processing"),
-            ("transcript", "📝", "Transcription"),
-            ("title",      "🏷️", "Title Generation"),
-            ("summary",    "📋", "Summarisation"),
-            ("extract",    "🔍", "Extraction"),
-            ("rag",        "🧠", "RAG Engine"),
-        ]:
-            render_step_bar(label, step, icon)
+    sidebar_status_placeholder = st.empty()
+
+    def render_sidebar_status(placeholder):
+        if st.session_state.pipeline_done or st.session_state.pipeline_steps:
+            with placeholder.container():
+                st.markdown("---")
+                st.markdown('<span class="badge badge-green">Pipeline Status</span>', unsafe_allow_html=True)
+                for step, icon, label in [
+                    ("audio",      "🔊", "Audio Processing"),
+                    ("transcript", "📝", "Transcription"),
+                    ("title",      "🏷️", "Title Generation"),
+                    ("summary",    "📋", "Summarisation"),
+                    ("extract",    "🔍", "Extraction"),
+                    ("rag",        "🧠", "RAG Engine"),
+                ]:
+                    render_step_bar(label, step, icon)
+
+    render_sidebar_status(sidebar_status_placeholder)
 
 # ─── Main Area ──────────────────────────────────────────────────────────────────
 st.markdown('<div class="hero-title">AI Video Assistant</div>', unsafe_allow_html=True)
@@ -374,6 +380,7 @@ if run_btn:
 
         def update_step(key, state):
             st.session_state.pipeline_steps[key] = state
+            render_sidebar_status(sidebar_status_placeholder)
 
         try:
             with progress_placeholder.container():
@@ -508,13 +515,9 @@ if st.session_state.result:
         </div>""", unsafe_allow_html=True)
 
     # Chat input
-    chat_col1, chat_col2 = st.columns([5, 1], gap="small")
-    with chat_col1:
-        user_input = st.text_input("Your question", placeholder="What were the main decisions made?", label_visibility="collapsed")
-    with chat_col2:
-        send_btn = st.button("Send →", use_container_width=True)
+    user_input = st.chat_input("Ask anything about your meeting...")
 
-    if send_btn and user_input.strip():
+    if user_input and user_input.strip():
         with st.spinner("Thinking…"):
             answer = ask_question(r["rag_chain"], user_input.strip())
         st.session_state.chat_history.append({"role": "user",      "content": user_input.strip()})
